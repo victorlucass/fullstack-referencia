@@ -1,4 +1,4 @@
-import { api } from '@/lib/axios'
+import { bilApi } from '@/lib/bil-api'
 
 export interface GetDailyRevenueInPeriodQuery {
   from?: Date
@@ -14,7 +14,7 @@ export async function getDailyRevenueInPeriod({
   from,
   to,
 }: GetDailyRevenueInPeriodQuery) {
-  const response = await api.get<GetDailyRevenueInPeriodResponse>(
+  const response = await bilApi.get<GetDailyRevenueInPeriodResponse>(
     '/metrics/daily-receipt-in-period',
     {
       params: {

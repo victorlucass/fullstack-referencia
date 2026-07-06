@@ -1,4 +1,4 @@
-import { api } from '@/lib/axios'
+import { bilApi } from '@/lib/bil-api'
 
 export interface GetMonthCanceledOrdersAmountResponse {
   amount: number
@@ -6,7 +6,7 @@ export interface GetMonthCanceledOrdersAmountResponse {
 }
 
 export async function getMonthCanceledOrdersAmount() {
-  const response = await api.get<GetMonthCanceledOrdersAmountResponse>(
+  const response = await bilApi.get<GetMonthCanceledOrdersAmountResponse>(
     '/metrics/month-canceled-orders-amount',
   )
 

@@ -1,4 +1,4 @@
-import { api } from '@/lib/axios'
+import { bilApi } from '@/lib/bil-api'
 
 export interface GetMonthRevenueResponse {
   receipt: number
@@ -6,7 +6,7 @@ export interface GetMonthRevenueResponse {
 }
 
 export async function getMonthRevenue() {
-  const response = await api.get<GetMonthRevenueResponse>(
+  const response = await bilApi.get<GetMonthRevenueResponse>(
     '/metrics/month-receipt',
   )
 

@@ -1,4 +1,4 @@
-import { api } from '@/lib/axios'
+import { bilApi } from '@/lib/bil-api'
 
 export type GetPopularProductsResponse = {
   product: string
@@ -6,7 +6,7 @@ export type GetPopularProductsResponse = {
 }[]
 
 export async function getPopularProducts() {
-  const response = await api.get<GetPopularProductsResponse>(
+  const response = await bilApi.get<GetPopularProductsResponse>(
     '/metrics/popular-products',
   )
 

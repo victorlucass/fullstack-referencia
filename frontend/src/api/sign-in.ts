@@ -1,9 +1,9 @@
-import { api } from '@/lib/axios'
+import { bilApi } from '@/lib/bil-api'
 
 export interface SignInBody {
   email: string
 }
 
 export async function signIn({ email }: SignInBody) {
-  await api.post('/authenticate', { email })
+  await bilApi.post('/authenticate', { email })
 }

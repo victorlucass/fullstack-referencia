@@ -1,4 +1,4 @@
-import { api } from '@/lib/axios'
+import { bilApi } from '@/lib/bil-api'
 
 export interface GetProfileResponse {
   id: string
@@ -11,7 +11,7 @@ export interface GetProfileResponse {
 }
 
 export async function getProfile() {
-  const response = await api.get<GetProfileResponse>('/me')
+  const response = await bilApi.get<GetProfileResponse>('/me')
 
   return response.data
 }

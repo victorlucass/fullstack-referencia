@@ -1,9 +1,9 @@
-import { api } from '@/lib/axios'
+import { bilApi } from '@/lib/bil-api'
 
 export interface DeliverOrderParams {
   orderId: string
 }
 
 export async function deliverOrder({ orderId }: DeliverOrderParams) {
-  await api.patch(`/orders/${orderId}/deliver`)
+  await bilApi.patch(`/orders/${orderId}/deliver`)
 }

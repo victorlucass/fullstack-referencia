@@ -1,5 +1,5 @@
-import { api } from '@/lib/axios'
+import { bilApi } from '@/lib/bil-api'
 
 export async function signOut() {
-  await api.post('/sign-out')
+  await bilApi.post('/sign-out')
 }

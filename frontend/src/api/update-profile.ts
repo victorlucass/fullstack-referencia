@@ -1,4 +1,4 @@
-import { api } from '@/lib/axios'
+import { bilApi } from '@/lib/bil-api'
 
 export interface UpdateProfileBody {
   name: string
@@ -6,5 +6,5 @@ export interface UpdateProfileBody {
 }
 
 export async function updateProfile({ description, name }: UpdateProfileBody) {
-  await api.put('/profile', { name, description })
+  await bilApi.put('/profile', { name, description })
 }

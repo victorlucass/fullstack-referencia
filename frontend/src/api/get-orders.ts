@@ -1,4 +1,4 @@
-import { api } from '@/lib/axios'
+import { bilApi } from '@/lib/bil-api'
 
 export interface GetOrdersQuery {
   pageIndex?: number | null
@@ -28,7 +28,7 @@ export async function getOrders({
   orderId,
   status,
 }: GetOrdersQuery) {
-  const response = await api.get<GetOrdersResponse>('/orders', {
+  const response = await bilApi.get<GetOrdersResponse>('/orders', {
     params: {
       pageIndex,
       orderId,

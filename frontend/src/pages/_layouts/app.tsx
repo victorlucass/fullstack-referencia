@@ -3,13 +3,13 @@ import { useEffect } from 'react'
 import { Outlet, useNavigate } from 'react-router-dom'
 
 import { Header } from '@/components/header'
-import { api } from '@/lib/axios'
+import { bilApi } from '@/lib/bil-api'
 
 export function AppLayout() {
   const navigate = useNavigate()
 
   useEffect(() => {
-    const interceptorId = api.interceptors.response.use(
+    const interceptorId = bilApi.interceptors.response.use(
       (response) => response,
       (error) => {
         if (isAxiosError(error)) {
@@ -26,7 +26,7 @@ export function AppLayout() {
     )
 
     return () => {
-      api.interceptors.response.eject(interceptorId)
+      bilApi.interceptors.response.eject(interceptorId)
     }
   }, [navigate])
 

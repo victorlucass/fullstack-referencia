@@ -1,4 +1,4 @@
-import { api } from '@/lib/axios'
+import { bilApi } from '@/lib/bil-api'
 
 export interface GetManagedRestaurantResponse {
   id: string
@@ -10,7 +10,7 @@ export interface GetManagedRestaurantResponse {
 }
 
 export async function getManagedRestaurant() {
-  const response = await api.get<GetManagedRestaurantResponse>(
+  const response = await bilApi.get<GetManagedRestaurantResponse>(
     '/managed-restaurant',
   )
 

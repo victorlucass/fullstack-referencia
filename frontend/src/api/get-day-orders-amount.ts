@@ -1,4 +1,4 @@
-import { api } from '@/lib/axios'
+import { bilApi } from '@/lib/bil-api'
 
 export interface GetDayOrdersAmountResponse {
   amount: number
@@ -6,7 +6,7 @@ export interface GetDayOrdersAmountResponse {
 }
 
 export async function getDayOrdersAmount() {
-  const response = await api.get<GetDayOrdersAmountResponse>(
+  const response = await bilApi.get<GetDayOrdersAmountResponse>(
     '/metrics/day-orders-amount',
   )
 
