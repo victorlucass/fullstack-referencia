@@ -1,0 +1,25 @@
+# Infraestrutura de desenvolvimento do Bil (Fórum Q&A)
+# Sobe apenas os serviços de apoio (banco de dados e cache).
+# Backend e frontend rodam localmente via pnpm/npm, fora do Docker.
+
+services:
+  postgres:
+    container_name: bil-postgres
+    image: postgres:17
+    ports:
+      - 5432:5432
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: docker
+      POSTGRES_DB: nest-clean
+      PGDATA: /data/postgres
+    volumes:
+      - ./data/pg:/data/postgres
+
+  redis:
+    container_name: bil-redis
+    image: redis:7-alpine
+    ports:
+      - 6379:6379
+    volumes:
+      - ./data/redis:/data

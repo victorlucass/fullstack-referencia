@@ -99,10 +99,10 @@ Siga as instruções abaixo para configurar e executar o projeto em seu ambiente
     - Renomeie o arquivo `.env.example` para `.env`.
     - Preencha as variáveis de ambiente no arquivo `.env` com as suas configurações (banco de dados, chaves de segurança, etc.).
 
-4. **Inicie o banco de dados com Docker:**
+4. **Inicie o banco de dados e o cache com Docker (a partir da raiz do repositório):**
 
     ```bash
-    docker-compose up -d
+    cd .. && docker compose up -d
     ```
 
 5. **Execute as migrações do Prisma:**
