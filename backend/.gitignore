@@ -40,3 +40,6 @@ lerna-debug.log*
 
 # Docker
 data
+
+# Uploads (arquivos enviados pelos usuários, salvos em disco local)
+/uploads

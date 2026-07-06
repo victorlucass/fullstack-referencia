@@ -1,2 +1,17 @@
+# Dependencies
+node_modules
+**/node_modules
+
+# Turborepo
+.turbo
+**/.turbo
+
+# Build
+/dist
+**/dist
+
 # Docker (dados persistidos pelo docker-compose de dev)
 data/
+
+# File uploads
+backend/uploads/

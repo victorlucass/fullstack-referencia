@@ -15,7 +15,7 @@ Esta aplicação é o back-end para uma plataforma de fórum, similar ao Stack O
 - **Autenticação:** [JWT](https://jwt.io/) (JSON Web Tokens)
 - **Testes:** [Vitest](https://vitest.dev/)
 - **Cache:** [Redis](https://redis.io/)
-- **Upload de Arquivos:** Suporte para upload de arquivos (ex: R2 Storage)
+- **Upload de Arquivos:** Suporte para upload de arquivos via Multer, armazenados em disco local
 - **Linting:** [ESLint](https://eslint.org/)
 - **Validação:** [Zod](https://zod.dev/)
 
@@ -80,32 +80,27 @@ Siga as instruções abaixo para configurar e executar o projeto em seu ambiente
 - [pnpm](https://pnpm.io/installation)
 - [Docker](https://www.docker.com/get-started) (para o banco de dados)
 
+Este pacote faz parte do monorepo (pnpm workspaces + Turborepo); os comandos de instalação e infraestrutura são executados a partir da raiz do repositório.
+
 ### Instalação
 
-1. **Clone o repositório:**
+1. **Instale as dependências (a partir da raiz do repositório):**
 
     ```bash
-    git clone https://github.com/rocketseat-education/05-nest-clean
-    cd 05-nest-clean
+    cd .. && pnpm install
     ```
 
-2. **Instale as dependências:**
-
-    ```bash
-    pnpm install
-    ```
-
-3. **Configure o ambiente:**
-    - Renomeie o arquivo `.env.example` para `.env`.
+2. **Configure o ambiente:**
+    - Renomeie o arquivo `backend/.env.example` para `backend/.env`.
     - Preencha as variáveis de ambiente no arquivo `.env` com as suas configurações (banco de dados, chaves de segurança, etc.).
 
-4. **Inicie o banco de dados e o cache com Docker (a partir da raiz do repositório):**
+3. **Inicie o banco de dados e o cache com Docker (a partir da raiz do repositório):**
 
     ```bash
-    cd .. && docker compose up -d
+    docker compose up -d
     ```
 
-5. **Execute as migrações do Prisma:**
+4. **Execute as migrações do Prisma (a partir de `backend/`):**
 
     ```bash
     pnpm prisma migrate dev
@@ -113,10 +108,10 @@ Siga as instruções abaixo para configurar e executar o projeto em seu ambiente
 
 ### Executando a Aplicação
 
-- **Modo de desenvolvimento:**
+- **Modo de desenvolvimento** (a partir de `backend/`, ou `pnpm dev` na raiz para subir junto com o frontend):
 
   ```bash
-  pnpm start:dev
+  pnpm dev
   ```
 
   A aplicação estará disponível em `http://localhost:3333`.

@@ -1,0 +1,16 @@
+{
+  "name": "bil",
+  "version": "1.0.0",
+  "private": true,
+  "packageManager": "pnpm@11.10.0",
+  "scripts": {
+    "predev": "node scripts/free-ports.mjs 3333 5173",
+    "dev": "turbo run dev --concurrency 20",
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "test": "turbo run test"
+  },
+  "devDependencies": {
+    "turbo": "^2.5.3"
+  }
+}
