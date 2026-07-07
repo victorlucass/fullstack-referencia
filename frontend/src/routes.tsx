@@ -4,7 +4,7 @@ import { AppLayout } from './pages/_layouts/app'
 import { AuthLayout } from './pages/_layouts/auth'
 import { NotFound } from './pages/404'
 import { Dashboard } from './pages/app/dashboard/dashboard'
-import { Orders } from './pages/app/orders/orders'
+import { DowntimeHistory } from './pages/app/downtime/downtime-history'
 import { SignIn } from './pages/auth/sign-in'
 import { SignUp } from './pages/auth/sign-up'
 import { Error } from './pages/error'
@@ -20,8 +20,8 @@ export const router = createBrowserRouter([
         element: <Dashboard />,
       },
       {
-        path: '/orders',
-        element: <Orders />,
+        path: '/downtime',
+        element: <DowntimeHistory />,
       },
     ],
   },

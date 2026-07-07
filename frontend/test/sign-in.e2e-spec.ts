@@ -24,10 +24,10 @@ test('sign in with wrong credentials', async ({ page }) => {
   await expect(toast).toBeVisible()
 })
 
-test('navigate to new restaurant page', async ({ page }) => {
+test('navigate to new line page', async ({ page }) => {
   await page.goto('/sign-in', { waitUntil: 'networkidle' })
 
-  await page.getByRole('link', { name: 'Novo estabelecimento' }).click()
+  await page.getByRole('link', { name: 'Nova linha SMT' }).click()
 
   expect(page.url()).toContain('/sign-up')
 })

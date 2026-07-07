@@ -56,7 +56,7 @@ export function SignIn() {
 
       <div className="p-8">
         <Button variant="ghost" asChild className="absolute right-8 top-8">
-          <Link to="/sign-up">Novo estabelecimento</Link>
+          <Link to="/sign-up">Nova linha SMT</Link>
         </Button>
 
         <div className="flex w-[350px] flex-col justify-center gap-6">
@@ -65,7 +65,7 @@ export function SignIn() {
               Acessar painel
             </h1>
             <p className="text-sm text-muted-foreground">
-              Acompanhe suas vendas pelo painel do parceiro!
+              Acompanhe o OEE da sua linha SMT em tempo real!
             </p>
           </div>
 

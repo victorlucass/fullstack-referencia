@@ -1,94 +1,79 @@
 import { createServer, Response } from 'miragejs'
 
-import type { GetOrderDetailsResponse } from '../get-order-details'
-import type { GetOrdersResponse } from '../get-orders'
+import type { GetDowntimeEventDetailsResponse } from '../get-downtime-event-details'
+import type { GetDowntimeEventsResponse } from '../get-downtime-events'
 
-type OrderStatus = GetOrderDetailsResponse['status']
+type DowntimeEventStatus = GetDowntimeEventDetailsResponse['status']
 
-interface OrderRecord {
+interface DowntimeEventRecord {
   id: string
-  customerName: string
-  customerEmail: string
-  customerPhone: string
-  createdAt: string
-  status: OrderStatus
-  items: {
-    id: string
-    priceInCents: number
-    quantity: number
-    productName: string
-  }[]
+  line: string
+  machine: string
+  cause: string
+  startedAt: string
+  durationMinutes: number
+  status: DowntimeEventStatus
+  operatorNote: string | null
 }
 
-const orderStatuses: OrderStatus[] = [
-  'pending',
-  'processing',
-  'canceled',
-  'delivered',
-  'delivering',
+const machines = [
+  'Printer',
+  'SPI',
+  'Placement',
+  'AOI Pré',
+  'Reflow',
+  'AOI Pós',
+  'Router',
 ]
 
-function seedOrders(length: number): OrderRecord[] {
+const causes = [
+  'Falta de Material',
+  'Ajuste de Máquina',
+  'Limpeza',
+  'Setup',
+  'Outros',
+]
+
+function seedDowntimeEvents(length: number): DowntimeEventRecord[] {
   return Array.from({ length }).map((_, i) => ({
-    id: `order-${i + 1}`,
-    customerName: `Customer ${i + 1}`,
-    customerEmail: `customer${i + 1}@example.com`,
-    customerPhone: '11999999999',
-    createdAt: new Date().toISOString(),
-    status: orderStatuses[i % orderStatuses.length],
-    items: [
-      {
-        id: `order-${i + 1}-item-1`,
-        priceInCents: 1000,
-        quantity: 1,
-        productName: 'Product A',
-      },
-      {
-        id: `order-${i + 1}-item-2`,
-        priceInCents: 2000,
-        quantity: 2,
-        productName: 'Product B',
-      },
-    ],
+    id: `downtime-${i + 1}`,
+    line: 'SMT 01',
+    machine: machines[i % machines.length],
+    cause: causes[i % causes.length],
+    startedAt: new Date().toISOString(),
+    durationMinutes: 10 + (i % 6) * 5,
+    status: i % 3 === 0 ? 'open' : 'resolved',
+    operatorNote:
+      i % 3 === 0 ? 'Aguardando técnico de manutenção.' : 'Resolvido em campo.',
   }))
 }
 
-function orderTotalInCents(order: OrderRecord) {
-  return order.items.reduce(
-    (total, item) => total + item.priceInCents * item.quantity,
-    0,
-  )
-}
-
-function toOrderListItem(
-  order: OrderRecord,
-): GetOrdersResponse['orders'][number] {
+function toDowntimeEventListItem(
+  event: DowntimeEventRecord,
+): GetDowntimeEventsResponse['events'][number] {
   return {
-    orderId: order.id,
-    createdAt: order.createdAt,
-    status: order.status,
-    customerName: order.customerName,
-    total: orderTotalInCents(order),
+    eventId: event.id,
+    line: event.line,
+    machine: event.machine,
+    cause: event.cause,
+    startedAt: event.startedAt,
+    durationMinutes: event.durationMinutes,
+    status: event.status,
   }
 }
 
-function toOrderDetails(order: OrderRecord): GetOrderDetailsResponse {
+function toDowntimeEventDetails(
+  event: DowntimeEventRecord,
+): GetDowntimeEventDetailsResponse {
   return {
-    id: order.id,
-    createdAt: order.createdAt,
-    status: order.status,
-    totalInCents: orderTotalInCents(order),
-    customer: {
-      name: order.customerName,
-      email: order.customerEmail,
-      phone: order.customerPhone,
-    },
-    orderItems: order.items.map((item) => ({
-      id: item.id,
-      priceInCents: item.priceInCents,
-      quantity: item.quantity,
-      product: { name: item.productName },
-    })),
+    id: event.id,
+    line: event.line,
+    machine: event.machine,
+    cause: event.cause,
+    startedAt: event.startedAt,
+    durationMinutes: event.durationMinutes,
+    status: event.status,
+    operatorNote: event.operatorNote,
   }
 }
 
@@ -97,14 +82,17 @@ interface MockServerConfig {
   urlPrefix: string
 }
 
-export function makeMockServer({ environment = 'development', urlPrefix }: MockServerConfig) {
+export function makeMockServer({
+  environment = 'development',
+  urlPrefix,
+}: MockServerConfig) {
   return createServer({
     environment,
     logging: false,
 
     seeds(server) {
       server.db.loadData({
-        orders: seedOrders(60),
+        downtimeEvents: seedDowntimeEvents(60),
       })
     },
 
@@ -115,7 +103,7 @@ export function makeMockServer({ environment = 'development', urlPrefix }: MockS
 
       this.post('/authenticate', () => new Response(204))
       this.post('/sign-out', () => new Response(204))
-      this.post('/restaurants', () => new Response(201))
+      this.post('/lines', () => new Response(201))
 
       this.get('/me', () => ({
         id: 'user-1',
@@ -127,133 +115,129 @@ export function makeMockServer({ environment = 'development', urlPrefix }: MockS
         updatedAt: null,
       }))
 
-      this.get('/managed-restaurant', () => ({
-        id: 'restaurant-1',
-        name: 'Restaurant demo',
-        description: 'Descrição de demonstração',
+      this.get('/managed-line', () => ({
+        id: 'line-1',
+        name: 'SMT 01',
+        plant: 'Jabil Manaus',
+        description: 'Linha de montagem SMT — placas de controle industrial.',
         createdAt: new Date().toISOString(),
         updatedAt: null,
         managerId: 'user-1',
       }))
 
+      this.get('/lines', () => ({
+        lines: [
+          { id: 'line-1', name: 'SMT 01' },
+          { id: 'line-2', name: 'SMT 02' },
+          { id: 'line-3', name: 'SMT 03' },
+        ],
+      }))
+
       this.put('/profile', () => new Response(204))
 
-      this.get('/metrics/day-orders-amount', () => ({
-        amount: 20,
-        diffFromYesterday: -5,
+      this.get('/metrics/oee-overview', () => ({
+        oee: 84.7,
+        availability: 92.1,
+        performance: 91.8,
+        quality: 98.3,
+        production: 24587,
+        goals: {
+          oee: 85,
+          availability: 90,
+          performance: 92,
+          quality: 98,
+          production: 26000,
+        },
+        updatedAt: new Date().toISOString(),
       }))
 
-      this.get('/metrics/month-orders-amount', () => ({
-        amount: 200,
-        diffFromLastMonth: 7,
-      }))
-
-      this.get('/metrics/month-canceled-orders-amount', () => ({
-        amount: 5,
-        diffFromLastMonth: -5,
-      }))
-
-      this.get('/metrics/month-receipt', () => ({
-        receipt: 20000,
-        diffFromLastMonth: 10,
-      }))
-
-      this.get('/metrics/daily-receipt-in-period', () => [
-        { date: '01/01/2024', receipt: 2000 },
-        { date: '02/01/2024', receipt: 800 },
-        { date: '03/01/2024', receipt: 8000 },
-        { date: '04/01/2024', receipt: 540 },
-        { date: '05/01/2024', receipt: 400 },
-        { date: '06/01/2024', receipt: 700 },
-        { date: '07/01/2024', receipt: 1000 },
+      this.get('/metrics/equipment-oee', () => [
+        { machine: 'Printer', oee: 91 },
+        { machine: 'SPI', oee: 89 },
+        { machine: 'Placement', oee: 85 },
+        { machine: 'AOI Pré', oee: 86 },
+        { machine: 'Reflow', oee: 82 },
+        { machine: 'AOI Pós', oee: 87 },
+        { machine: 'Router', oee: 88 },
       ])
 
-      this.get('/metrics/popular-products', () => [
-        { product: 'Product A', amount: 40 },
-        { product: 'Product B', amount: 30 },
-        { product: 'Product C', amount: 22 },
-        { product: 'Product D', amount: 12 },
-        { product: 'Product E', amount: 8 },
+      this.get('/metrics/downtime-pareto', () => [
+        { cause: 'Falta de Material', minutes: 120 },
+        { cause: 'Ajuste de Máquina', minutes: 85 },
+        { cause: 'Limpeza', minutes: 60 },
+        { cause: 'Setup', minutes: 45 },
+        { cause: 'Outros', minutes: 30 },
       ])
 
-      this.get('/orders', (schema, request) => {
-        const { pageIndex, customerName, orderId, status } =
+      this.get('/metrics/oee-trend', () =>
+        Array.from({ length: 24 }).map((_, i) => ({
+          time: `${String(i).padStart(2, '0')}:00`,
+          oee: 80 + Math.round(Math.sin(i / 3) * 6 + (i % 4)),
+        })),
+      )
+
+      this.get('/downtime-events', (schema, request) => {
+        const { pageIndex, machine, cause, status } =
           request.queryParams as Record<string, string | undefined>
 
         const parsedPageIndex = pageIndex ? Number(pageIndex) : 0
 
-        let orders = schema.db.orders as OrderRecord[]
+        let events = schema.db.downtimeEvents as DowntimeEventRecord[]
 
-        if (customerName) {
-          orders = orders.filter((order) =>
-            order.customerName.includes(customerName),
-          )
+        if (machine) {
+          events = events.filter((event) => event.machine === machine)
         }
 
-        if (orderId) {
-          orders = orders.filter((order) => order.id.includes(orderId))
+        if (cause) {
+          events = events.filter((event) => event.cause.includes(cause))
         }
 
         if (status) {
-          orders = orders.filter((order) => order.status === status)
+          events = events.filter((event) => event.status === status)
         }
 
-        const paginatedOrders = orders.slice(
+        const paginatedEvents = events.slice(
           parsedPageIndex * 10,
           (parsedPageIndex + 1) * 10,
         )
 
-        const response: GetOrdersResponse = {
-          orders: paginatedOrders.map(toOrderListItem),
+        const response: GetDowntimeEventsResponse = {
+          events: paginatedEvents.map(toDowntimeEventListItem),
           meta: {
             pageIndex: parsedPageIndex,
             perPage: 10,
-            totalCount: orders.length,
+            totalCount: events.length,
           },
         }
 
         return response
       })
 
-      this.get('/orders/:orderId', (schema, request) => {
-        const order = schema.db.orders.findBy({
-          id: request.params.orderId,
-        }) as OrderRecord | null
+      this.get('/downtime-events/:eventId', (schema, request) => {
+        const event = schema.db.downtimeEvents.findBy({
+          id: request.params.eventId,
+        }) as DowntimeEventRecord | null
 
-        if (!order) {
+        if (!event) {
           return new Response(404)
         }
 
-        return toOrderDetails(order)
+        return toDowntimeEventDetails(event)
       })
 
-      const transitionOrderStatus = (status: OrderStatus) => {
-        return (schema: any, request: any) => {
-          const order = schema.db.orders.findBy({ id: request.params.orderId })
+      this.patch('/downtime-events/:eventId/resolve', (schema, request) => {
+        const event = schema.db.downtimeEvents.findBy({
+          id: request.params.eventId,
+        })
 
-          if (!order) {
-            return new Response(404)
-          }
-
-          schema.db.orders.update(order.id, { status })
-
-          return new Response(204)
+        if (!event) {
+          return new Response(404)
         }
-      }
 
-      this.patch(
-        '/orders/:orderId/approve',
-        transitionOrderStatus('processing'),
-      )
-      this.patch('/orders/:orderId/cancel', transitionOrderStatus('canceled'))
-      this.patch(
-        '/orders/:orderId/dispatch',
-        transitionOrderStatus('delivering'),
-      )
-      this.patch(
-        '/orders/:orderId/deliver',
-        transitionOrderStatus('delivered'),
-      )
+        schema.db.downtimeEvents.update(event.id, { status: 'resolved' })
+
+        return new Response(204)
+      })
 
       this.passthrough()
     },

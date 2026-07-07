@@ -2,11 +2,11 @@ import { useMutation, useQuery } from '@tanstack/react-query'
 import { Building, ChevronDown, LogOut } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 
-import { getManagedRestaurant } from '@/api/get-managed-restaurant'
+import { getManagedLine } from '@/api/get-managed-line'
 import { getProfile } from '@/api/get-profile'
 import { signOut } from '@/api/sign-out'
 
-import { StoreProfileDialog } from './store-profile-dialog'
+import { LineProfileDialog } from './line-profile-dialog'
 import { Button } from './ui/button'
 import { Dialog, DialogTrigger } from './ui/dialog'
 import {
@@ -28,12 +28,11 @@ export function AccountMenu() {
     staleTime: Infinity,
   })
 
-  const { data: managedRestaurant, isLoading: isLoadingManagedRestaurant } =
-    useQuery({
-      queryKey: ['managed-restaurant'],
-      queryFn: getManagedRestaurant,
-      staleTime: Infinity,
-    })
+  const { data: managedLine, isLoading: isLoadingManagedLine } = useQuery({
+    queryKey: ['managed-line'],
+    queryFn: getManagedLine,
+    staleTime: Infinity,
+  })
 
   const { mutateAsync: signOutFn, isPending: isSigningOut } = useMutation({
     mutationFn: signOut,
@@ -50,10 +49,10 @@ export function AccountMenu() {
             variant="outline"
             className="flex select-none items-center gap-2"
           >
-            {isLoadingManagedRestaurant ? (
+            {isLoadingManagedLine ? (
               <Skeleton className="h-4 w-40" />
             ) : (
-              managedRestaurant?.name
+              managedLine?.name
             )}
             <ChevronDown className="h-4 w-4" />
           </Button>
@@ -79,7 +78,7 @@ export function AccountMenu() {
           <DialogTrigger asChild>
             <DropdownMenuItem>
               <Building className="mr-2 h-4 w-4" />
-              <span>Perfil da loja</span>
+              <span>Configurações da linha</span>
             </DropdownMenuItem>
           </DialogTrigger>
           <DropdownMenuItem
@@ -95,7 +94,7 @@ export function AccountMenu() {
         </DropdownMenuContent>
       </DropdownMenu>
 
-      <StoreProfileDialog />
+      <LineProfileDialog />
     </Dialog>
   )
 }

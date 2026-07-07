@@ -5,13 +5,13 @@ import { Link, useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 import { z } from 'zod'
 
-import { registerRestaurant } from '@/api/register-restaurant'
+import { registerLine } from '@/api/register-line'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 
 const signUpForm = z.object({
-  restaurantName: z.string(),
+  lineName: z.string(),
   managerName: z.string(),
   phone: z.string(),
   email: z.string().email(),
@@ -28,27 +28,27 @@ export function SignUp() {
     formState: { isSubmitting },
   } = useForm<SignUpForm>()
 
-  const { mutateAsync: registerRestaurantFn } = useMutation({
-    mutationFn: registerRestaurant,
+  const { mutateAsync: registerLineFn } = useMutation({
+    mutationFn: registerLine,
   })
 
   async function handleSignUp(data: SignUpForm) {
     try {
-      await registerRestaurantFn({
-        restaurantName: data.restaurantName,
+      await registerLineFn({
+        lineName: data.lineName,
         managerName: data.managerName,
         email: data.email,
         phone: data.phone,
       })
 
-      toast.success('Restaurante cadastrado com sucesso!', {
+      toast.success('Linha cadastrada com sucesso!', {
         action: {
           label: 'Login',
           onClick: () => navigate(`/sign-in?email=${data.email}`),
         },
       })
     } catch (error) {
-      toast.error('Erro ao cadastrar restaurante.')
+      toast.error('Erro ao cadastrar a linha.')
     }
   }
 
@@ -64,21 +64,17 @@ export function SignUp() {
         <div className="flex w-[350px] flex-col justify-center gap-6">
           <div className="flex flex-col gap-2 text-center">
             <h1 className="text-2xl font-semibold tracking-tight">
-              Criar conta grátis
+              Cadastrar nova linha
             </h1>
             <p className="text-sm text-muted-foreground">
-              Seja um parceiro e comece suas vendas!
+              Acompanhe o desempenho da sua linha de produção!
             </p>
           </div>
 
           <form className="space-y-4" onSubmit={handleSubmit(handleSignUp)}>
             <div className="space-y-2">
-              <Label htmlFor="restaurantName">Nome do estabelecimento</Label>
-              <Input
-                id="restaurantName"
-                type="text"
-                {...register('restaurantName')}
-              />
+              <Label htmlFor="lineName">Nome da linha (ex: SMT 01)</Label>
+              <Input id="lineName" type="text" {...register('lineName')} />
             </div>
 
             <div className="space-y-2">

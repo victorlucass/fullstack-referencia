@@ -2,42 +2,34 @@ import { setupWorker } from 'msw/browser'
 
 import { env } from '@/env'
 
-import { approveOrderMock } from './approve-order-mock'
-import { cancelOrderMock } from './cancel-order-mock'
-import { deliverOrderMock } from './deliver-order-mock'
-import { dispatchOrderMock } from './dispatch-order-mock'
-import { getDailyRevenueInPeriodMock } from './get-daily-revenue-in-period-mock'
-import { getDayOrdersAmountMock } from './get-day-orders-amount'
-import { getManagedRestaurantMock } from './get-managed-restaurant-mock'
-import { getMonthCanceledOrdersAmountMock } from './get-month-canceled-orders-amount'
-import { getMonthOrdersAmountMock } from './get-month-orders-amount'
-import { getMonthRevenueMock } from './get-month-revenue'
-import { getOrderDetailsMock } from './get-order-details-mock'
-import { getOrdersMock } from './get-orders-mock'
-import { getPopularProductsMock } from './get-popular-products-mock'
+import { getDowntimeEventDetailsMock } from './get-downtime-event-details-mock'
+import { getDowntimeEventsMock } from './get-downtime-events-mock'
+import { getDowntimeParetoMock } from './get-downtime-pareto-mock'
+import { getEquipmentOeeMock } from './get-equipment-oee-mock'
+import { getLinesMock } from './get-lines-mock'
+import { getManagedLineMock } from './get-managed-line-mock'
+import { getOeeOverviewMock } from './get-oee-overview-mock'
+import { getOeeTrendMock } from './get-oee-trend-mock'
 import { getProfileMock } from './get-profile-mock'
-import { registerRestaurantMock } from './register-restaurant-mock'
+import { registerLineMock } from './register-line-mock'
+import { resolveDowntimeEventMock } from './resolve-downtime-event-mock'
 import { signInMock } from './sign-in-mock'
 import { updateProfileMock } from './update-profile-mock'
 
 export const worker = setupWorker(
   signInMock,
-  registerRestaurantMock,
-  getDayOrdersAmountMock,
-  getMonthOrdersAmountMock,
-  getMonthCanceledOrdersAmountMock,
-  getMonthRevenueMock,
-  getDailyRevenueInPeriodMock,
-  getPopularProductsMock,
+  registerLineMock,
   getProfileMock,
-  getManagedRestaurantMock,
+  getManagedLineMock,
+  getLinesMock,
   updateProfileMock,
-  getOrdersMock,
-  getOrderDetailsMock,
-  cancelOrderMock,
-  approveOrderMock,
-  deliverOrderMock,
-  dispatchOrderMock,
+  getOeeOverviewMock,
+  getEquipmentOeeMock,
+  getDowntimeParetoMock,
+  getOeeTrendMock,
+  getDowntimeEventsMock,
+  getDowntimeEventDetailsMock,
+  resolveDowntimeEventMock,
 )
 
 export async function enableMSW() {
