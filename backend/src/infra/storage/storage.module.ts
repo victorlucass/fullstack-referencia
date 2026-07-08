@@ -1,4 +1,4 @@
-import { Uploader } from '@/domain/forum/application/storage/uploader'
+import { Uploader } from '@/core/storage/uploader'
 import { Module } from '@nestjs/common'
 import { DiskStorage } from './disk-storage'
 

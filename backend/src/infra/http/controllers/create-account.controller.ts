@@ -9,8 +9,8 @@ import {
 } from '@nestjs/common'
 import { z } from 'zod'
 import { ZodValidationPipe } from '@/infra/http/pipes/zod-validation-pipe'
-import { RegisterStudentUseCase } from '@/domain/forum/application/use-cases/register-student'
-import { StudentAlreadyExistsError } from '@/domain/forum/application/use-cases/errors/student-already-exists-error'
+import { RegisterUserUseCase } from '@/domain/user/application/use-cases/register-user'
+import { UserAlreadyExistsError } from '@/domain/user/application/use-cases/errors/user-already-exists-error'
 import { Public } from '@/infra/auth/public'
 
 const createAccountBodySchema = z.object({
@@ -24,7 +24,7 @@ type CreateAccountBodySchema = z.infer<typeof createAccountBodySchema>
 @Controller('/accounts')
 @Public()
 export class CreateAccountController {
-  constructor(private registerStudent: RegisterStudentUseCase) {}
+  constructor(private registerUser: RegisterUserUseCase) {}
 
   @Post()
   @HttpCode(201)
@@ -32,7 +32,7 @@ export class CreateAccountController {
   async handle(@Body() body: CreateAccountBodySchema) {
     const { name, email, password } = body
 
-    const result = await this.registerStudent.execute({
+    const result = await this.registerUser.execute({
       name,
       email,
       password,
@@ -42,7 +42,7 @@ export class CreateAccountController {
       const error = result.value
 
       switch (error.constructor) {
-        case StudentAlreadyExistsError:
+        case UserAlreadyExistsError:
           throw new ConflictException(error.message)
         default:
           throw new BadRequestException(error.message)

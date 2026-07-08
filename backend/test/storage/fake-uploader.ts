@@ -1,7 +1,4 @@
-import {
-  UploadParams,
-  Uploader,
-} from '@/domain/forum/application/storage/uploader'
+import { UploadParams, Uploader } from '@/core/storage/uploader'
 import { randomUUID } from 'crypto'
 
 interface Upload {

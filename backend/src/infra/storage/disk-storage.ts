@@ -1,7 +1,4 @@
-import {
-  UploadParams,
-  Uploader,
-} from '@/domain/forum/application/storage/uploader'
+import { UploadParams, Uploader } from '@/core/storage/uploader'
 
 import { Injectable } from '@nestjs/common'
 import { randomUUID } from 'node:crypto'
