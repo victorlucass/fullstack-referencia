@@ -6,6 +6,7 @@ import {
   UnauthorizedException,
   UsePipes,
 } from '@nestjs/common'
+import { ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger'
 import { ZodValidationPipe } from '@/infra/http/pipes/zod-validation-pipe'
 import { z } from 'zod'
 import { AuthenticateUserUseCase } from '@/domain/user/application/use-cases/authenticate-user'
@@ -19,6 +20,7 @@ const authenticateBodySchema = z.object({
 
 type AuthenticateBodySchema = z.infer<typeof authenticateBodySchema>
 
+@ApiTags('sessions')
 @Controller('/sessions')
 @Public()
 export class AuthenticateController {
@@ -26,6 +28,27 @@ export class AuthenticateController {
 
   @Post()
   @UsePipes(new ZodValidationPipe(authenticateBodySchema))
+  @ApiOperation({ summary: 'Autentica um usuário e retorna um access token' })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      required: ['email', 'password'],
+      properties: {
+        email: { type: 'string', format: 'email' },
+        password: { type: 'string' },
+      },
+    },
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Autenticação bem-sucedida',
+    schema: {
+      type: 'object',
+      properties: { access_token: { type: 'string' } },
+    },
+  })
+  @ApiResponse({ status: 400, description: 'Requisição inválida' })
+  @ApiResponse({ status: 401, description: 'Credenciais inválidas' })
   async handle(@Body() body: AuthenticateBodySchema) {
     const { email, password } = body
 
