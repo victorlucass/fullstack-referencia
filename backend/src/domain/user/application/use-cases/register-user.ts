@@ -4,6 +4,7 @@ import { User } from '../../enterprise/entities/user'
 import { UsersRepository } from '../repositories/users-repository'
 import { HashGenerator } from '@/core/cryptography/hash-generator'
 import { UserAlreadyExistsError } from './errors/user-already-exists-error'
+import { DomainEvents } from '@/core/events/domain-events'
 
 interface RegisterUserUseCaseRequest {
   name: string
@@ -45,6 +46,8 @@ export class RegisterUserUseCase {
     })
 
     await this.usersRepository.create(user)
+
+    DomainEvents.dispatchEventsForAggregate(user.id)
 
     return right({
       user,
