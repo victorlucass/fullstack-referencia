@@ -2,7 +2,7 @@
 
 **Preparado para:** Jabil
 **Elaborado por:** Victor Lucas — Engenheiro Fullstack Sênior
-**Data:** 14/07/2026 (revisão 4 — documento reestruturado no formato de aderência à Guideline de TI da EMS IT)
+**Data:** 14/07/2026 (revisão 5 — itens 16, 17 e 18 implementados e mesclados na branch principal; ver seções 8, 9 e 10)
 
 ---
 
@@ -35,11 +35,11 @@ A revisão anterior deste documento foi avaliada pela Jabil e recebeu um parecer
 | 13 | CI/CD | Pipeline completo no Azure DevOps | **Atende (com adequação)** | Build → Testes → SonarQube → Dependency/Security Scan → artefato versionado → aprovação de release → deploy DEV/QA/UAT/Produção. Ver seção 7. |
 | 14 | Code Review | Pull Request obrigatório antes do merge | **Atende** | Já previsto no fluxo de trabalho da equipe. |
 | 15 | Testes automatizados | Unit (Vitest) + E2E (Playwright/Vitest e2e) | **Atende** | Já implementado — use cases testados com repositórios fake em memória, sem depender de banco/infra. Ver seção 2.1. |
-| 16 | Observabilidade | OpenTelemetry + Prometheus + Grafana/Azure Monitor | **Atende (com adequação)** | Health checks, métricas, dashboards e distributed tracing. Ver seção 8. |
-| 17 | Auditoria | Audit Trail dedicado | **Atende (com adequação)** | Registro de usuário, timestamp, operação, dado antes/depois e origem da requisição para operações críticas. Ver seção 9. |
-| 18 | Segurança | JWT RS256 + RBAC + OAuth2/OIDC + Key Vault + Rate Limiting + OWASP | **Atende (com adequação)** | JWT RS256 já implementado; **adicionar** RBAC, avaliação de SSO corporativo, cofre de segredos, rate limiting e checklist OWASP Top 10. Ver seção 10. |
+| 16 | Observabilidade | OpenTelemetry + Prometheus + Grafana | **Atende** | Health checks, métricas e distributed tracing implementados e mesclados na `master`. Ver seção 8. |
+| 17 | Auditoria | Audit Trail dedicado | **Atende** | Tabela `audit_logs` implementada, alimentada por eventos de domínio. Mesclado na `master`. Ver seção 9. |
+| 18 | Segurança | JWT RS256 + RBAC + Rate Limiting + Helmet/CORS + OAuth2/OIDC + Key Vault | **Atende (parcial) — pendências com a Jabil** | RBAC, rate limiting e headers OWASP implementados. OAuth2/OIDC, cofre de segredos e criptografia em repouso dependem de decisão/infra da Jabil. Ver seção 10. |
 
-**Resultado consolidado:** dos 18 itens, **7 já atendem hoje sem nenhuma adequação** (itens 1, 2, 3, 4, 11, 12, 14, 15 — arquitetura, DI, padrões de projeto, nomenclatura, banco, code review e testes) e **10 passam a atender com a adequação descrita** nas seções técnicas abaixo (itens 5, 6, 7, 8, 9, 13, 16, 17, 18), restando **1 item não aplicável à stack** (documentação XML, item 10) com equivalente proposto.
+**Resultado consolidado:** dos 18 itens, **9 já atendem hoje sem nenhuma adequação pendente** (itens 1, 2, 3, 4, 11, 12, 14, 15, 16, 17 — arquitetura, DI, padrões de projeto, nomenclatura, banco, code review, testes, observabilidade e auditoria) e **8 passam a atender com a adequação descrita** nas seções técnicas abaixo (itens 5, 6, 7, 8, 9, 13, 18), restando **1 item não aplicável à stack** (documentação XML, item 10) com equivalente proposto. O item 18 (Segurança) já tem a parte que independe da Jabil implementada; a parte restante aguarda resposta da Jabil às perguntas da seção 10.1.
 
 ---
 
@@ -192,49 +192,61 @@ Hoje não existe pipeline configurado no repositório.
 
 ---
 
-## 8. Observabilidade (item 16)
+## 8. Observabilidade (item 16) — implementado
 
-Hoje não há instrumentação de observabilidade — apenas log de console.
+Implementado e mesclado na `master` (`backend/src/infra/observability/`):
 
-**Adequação proposta:**
+- **Health Checks** — `GET /health` (rota pública, via `@nestjs/terminus`), verificando Postgres e Redis; retorna `up`/`down` por dependência, pronto para probe de orquestrador (Kubernetes, Azure App Service, etc.);
+- **Métricas** — `GET /metrics` (rota pública, formato Prometheus), com métricas padrão do processo Node.js e métricas HTTP customizadas (`http_requests_total`, `http_request_duration_seconds`) segmentadas por rota, método e status code;
+- **Distributed Tracing** — **OpenTelemetry**, instrumentação automática (HTTP, Express, Prisma, Redis) carregada antes do bootstrap da aplicação; exporta para o console em desenvolvimento e para um collector OTLP (Grafana Tempo, Jaeger, Azure Monitor, etc.) quando a variável `OTEL_EXPORTER_OTLP_ENDPOINT` está configurada;
+- **Dashboards** — **Prometheus + Grafana** sobem junto com a infraestrutura de desenvolvimento (`docker-compose.yml`), com scrape config e um dashboard (`observability/grafana/dashboards/bil-backend.json`) já provisionados automaticamente: requisições por segundo, latência p95, taxa de erro 5xx e event loop lag.
 
-- **OpenTelemetry** para instrumentação de traces e métricas;
-- **Health Checks** (`/health`) para orquestrador/monitoramento de infraestrutura;
-- **Métricas** via Prometheus (latência, taxa de erro, throughput por endpoint);
-- **Dashboards** em Grafana ou Azure Monitor, a definir com o time de infraestrutura da Jabil;
-- **Distributed Tracing** cobrindo a cadeia requisição → use case → banco/cache, essencial para troubleshooting em produção.
-
----
-
-## 9. Auditoria (item 17)
-
-Hoje não existe Audit Trail — nenhuma operação crítica é registrada de forma auditável.
-
-**Adequação proposta:** mecanismo de **Audit Trail** dedicado (tabela própria, apartada do log de aplicação), registrando para cada operação crítica do domínio de OEE/downtime:
-
-- Usuário que executou a ação;
-- Data/hora da operação;
-- Operação executada (ex.: "resolução de evento de parada");
-- Dado alterado, no formato **Before/After**;
-- Origem da requisição (IP, user agent, ou canal de origem).
-
-Este mecanismo pode nascer como consumidor dos eventos de domínio já existentes na infraestrutura (`DomainEvents`, seção 2.4), mantendo o use case desacoplado da lógica de auditoria.
+**Pendência com a Jabil:** o destino de produção das métricas/traces (Prometheus+Grafana self-hosted vs. Azure Monitor/Application Insights corporativo) depende de qual ferramenta de observabilidade a Jabil já tem homologada — ver pergunta na seção 10.1.
 
 ---
 
-## 10. Segurança (item 18)
+## 9. Auditoria (item 17) — implementado
 
-Hoje: autenticação via JWT **RS256** com chave assimétrica e guard global (`JwtAuthGuard`), com rotas públicas via decorator `@Public()`.
+Implementado e mesclado na `master`: tabela dedicada `audit_logs` (`backend/src/core/audit/`, `backend/prisma/schema.prisma`), separada do log de aplicação, registrando por evento:
 
-**Adequações propostas para atendimento integral:**
+- Usuário que executou a ação (`actorId`, quando aplicável);
+- Data/hora da operação (`createdAt`);
+- Operação executada (`action`, ex.: `user.registered`, `user.login_succeeded`, `user.login_failed`);
+- Dado alterado, no formato **Before/After** (`before`/`after`, JSON);
+- Origem da requisição (`ipAddress`, `userAgent`).
 
-- **RBAC (Role-Based Access Control)**: modelar papéis (ex.: operador de linha, supervisor, admin) com guard/decorator de autorização por papel — hoje qualquer usuário autenticado acessa qualquer rota protegida;
-- **OAuth2/OpenID Connect**: avaliar com o time de infra da Jabil se é necessário federar com IdP corporativo (ex.: Azure AD/Entra ID) para SSO, em vez de manter apenas login local email/senha;
-- **Gerenciamento seguro de segredos**: migrar `JWT_PRIVATE_KEY`/`JWT_PUBLIC_KEY` e credenciais de banco de variável de ambiente para cofre gerenciado (**Azure Key Vault** ou **AWS Secrets Manager**), com política de rotação de chaves;
-- **Rate Limiting**: `@nestjs/throttler` (ou equivalente) nas rotas de autenticação, no mínimo, para mitigar força bruta;
-- **Proteção OWASP Top 10**: validação de entrada já via Zod; adicionar headers de segurança (`helmet`), CORS restritivo por ambiente e proteção contra IDOR nas rotas de OEE/downtime;
-- **Criptografia de dados sensíveis** em repouso, onde aplicável;
-- **Auditoria de autenticação e autorização**: tentativas de login, falhas e mudanças de permissão alimentando o Audit Trail (seção 9), não apenas o log de aplicação.
+Como planejado, o trail nasce como **consumidor de eventos de domínio** (`DomainEvents`, seção 2.4): `User` agora é um `AggregateRoot` que dispara `UserRegisteredEvent` na criação da conta, e o subscriber `OnUserRegistered` grava o registro de auditoria a partir desse evento — o use case de registro de usuário não sabe que auditoria existe. Tentativas de login (sucesso e falha) são auditadas diretamente no controller de autenticação, já que precisam do contexto HTTP (IP, user agent) que não pertence à camada de domínio — isso também cobre o pedido de auditoria de autenticação do item 18. Consulta via `GET /audit-logs` (autenticado, paginado).
+
+**Ponto em aberto:** o domínio de OEE/downtime ainda não existe no código (seção 12); quando for modelado, a mesma infraestrutura de `DomainEvents` → `AuditLogRepository` se aplica a operações como "resolução de evento de parada", sem trabalho adicional de infraestrutura.
+
+---
+
+## 10. Segurança (item 18) — implementado em parte, restante pendente da Jabil
+
+Base: autenticação via JWT **RS256** com chave assimétrica e guard global (`JwtAuthGuard`), com rotas públicas via decorator `@Public()`.
+
+**O que já está implementado e mesclado na `master`:**
+
+- **RBAC (Role-Based Access Control)**: `User` ganhou um `role` (`OPERATOR` / `SUPERVISOR` / `ADMIN`, default `OPERATOR`), propagado no JWT. Decorator `@Roles()` + `RolesGuard` (guard global, executa depois do `JwtAuthGuard`) bloqueiam rota sem o papel exigido — hoje demonstrado em `GET /accounts`, restrito a `ADMIN`;
+- **Rate Limiting**: `@nestjs/throttler` — limite global de 100 req/min e limite mais restritivo de 5 req/min em `POST /sessions` (login), mitigando força bruta;
+- **Proteção OWASP Top 10 (parcial)**: validação de entrada via Zod (já existia); `helmet()` adicionado no bootstrap (headers como `Strict-Transport-Security`, `X-Frame-Options`, `X-Content-Type-Options`); CORS configurável por ambiente via `CORS_ORIGIN`;
+- **Auditoria de autenticação**: tentativas de login (sucesso e falha) já alimentam o Audit Trail da seção 9, com IP e user agent da requisição.
+
+**O que segue pendente — depende de decisão/infraestrutura da Jabil:**
+
+- **OAuth2/OpenID Connect** com IdP corporativo, para SSO;
+- **Gerenciamento seguro de segredos** (Azure Key Vault / AWS Secrets Manager) para `JWT_PRIVATE_KEY`/`JWT_PUBLIC_KEY` e credenciais de banco, hoje em variável de ambiente;
+- **Criptografia de dados sensíveis em repouso** — depende de quais campos do domínio de OEE/downtime (seção 12, ainda não modelado) a Jabil classifica como sensíveis;
+- **Proteção contra IDOR** nas rotas de OEE/downtime — também depende desse domínio existir.
+
+### 10.1 Perguntas para a Jabil
+
+1. **Identidade corporativa**: federar login com IdP corporativo (Azure AD/Entra ID, Okta, outro) via OAuth2/OIDC, ou o login local (email/senha) atual é suficiente para este projeto? Se for federar, qual provedor, e quem configura o app registration do lado da Jabil?
+2. **Cofre de segredos**: a infraestrutura da Jabil já disponibiliza Azure Key Vault, AWS Secrets Manager ou equivalente para este projeto, ou isso ainda precisa ser provisionado?
+3. **Papéis de negócio**: além de um papel genérico de administrador, quais são os papéis reais esperados no domínio de OEE/downtime (ex.: operador de linha só reporta paradas da própria linha, supervisor aprova/edita, engenharia configura metas de OEE)? Isso define a granularidade real do RBAC.
+4. **CORS em produção**: quais domínios vão servir o frontend em cada ambiente (DEV/QA/UAT/Produção)? Necessário para configurar `CORS_ORIGIN` restritivamente — hoje o default é permissivo, só para não travar o desenvolvimento local.
+5. **Dados sensíveis em repouso**: quando o domínio de OEE/downtime for modelado, quais campos a Jabil considera sensíveis o suficiente para exigir criptografia em repouso (dados de produção proprietários, PII de operador, etc.)?
+6. **Ferramenta de observabilidade corporativa** (relacionado à seção 8): a Jabil já tem Azure Monitor/Application Insights homologado, ou o time prefere que o projeto suba sua própria stack Prometheus + Grafana em produção?
 
 ---
 
@@ -272,4 +284,4 @@ Independente da aderência à guideline, dois pontos de domínio seguem em abert
 
 ## Conclusão
 
-Com as adequações descritas nas seções 3 a 10, a proposta passa a atender **17 dos 18 itens da Guideline de TI da EMS IT** (o único item fora do escopo direto, documentação XML, tem equivalente funcional proposto na seção 6). Os itens que exigem adequação (5, 6, 7, 8, 9, 13, 16, 17, 18) têm tecnologia e abordagem concretas definidas acima — não pendências em aberto sem direção. Pontos que dependem de decisão conjunta com a Jabil (ferramenta de monitoramento corporativa, necessidade de SSO via IdP corporativo, percentual de cobertura mínima do Quality Gate) estão sinalizados explicitamente em cada seção correspondente.
+Com as adequações descritas nas seções 3 a 10, a proposta passa a atender **17 dos 18 itens da Guideline de TI da EMS IT** (o único item fora do escopo direto, documentação XML, tem equivalente funcional proposto na seção 6). Os itens 16 (Observabilidade) e 17 (Auditoria) já estão **implementados e mesclados na branch principal**, não mais como plano — health checks, métricas, tracing e Audit Trail funcionando de ponta a ponta. O item 18 (Segurança) está **implementado na parte que independe da Jabil** (RBAC, rate limiting, headers OWASP, auditoria de autenticação); a parte restante (SSO corporativo, cofre de segredos, criptografia em repouso) aguarda as respostas às perguntas da seção 10.1. Os demais itens que exigem adequação (5, 6, 7, 9, 13) têm tecnologia e abordagem concretas definidas acima — não pendências em aberto sem direção. Pontos que dependem de decisão conjunta com a Jabil estão consolidados nas perguntas da seção 10.1.
