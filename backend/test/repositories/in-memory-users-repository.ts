@@ -20,4 +20,8 @@ export class InMemoryUsersRepository implements UsersRepository {
 
     DomainEvents.dispatchEventsForAggregate(user.id)
   }
+
+  async findMany() {
+    return this.items
+  }
 }

@@ -11,6 +11,7 @@ export const envSchema = z.object({
   PORT: z.coerce.number().optional().default(3333),
   OTEL_SERVICE_NAME: z.string().optional().default('bil-backend'),
   OTEL_EXPORTER_OTLP_ENDPOINT: z.string().url().optional(),
+  CORS_ORIGIN: z.string().optional(),
 })
 
 export type Env = z.infer<typeof envSchema>
