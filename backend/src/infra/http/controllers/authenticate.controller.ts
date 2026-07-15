@@ -8,6 +8,7 @@ import {
   UsePipes,
 } from '@nestjs/common'
 import { Throttle } from '@nestjs/throttler'
+import { ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger'
 import { ZodValidationPipe } from '@/infra/http/pipes/zod-validation-pipe'
 import { z } from 'zod'
 import type { Request } from 'express'
@@ -23,6 +24,7 @@ const authenticateBodySchema = z.object({
 
 type AuthenticateBodySchema = z.infer<typeof authenticateBodySchema>
 
+@ApiTags('sessions')
 @Controller('/sessions')
 @Public()
 export class AuthenticateController {
@@ -34,6 +36,27 @@ export class AuthenticateController {
   @Post()
   @Throttle({ default: { limit: 5, ttl: 60_000 } })
   @UsePipes(new ZodValidationPipe(authenticateBodySchema))
+  @ApiOperation({ summary: 'Autentica um usuário e retorna um access token' })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      required: ['email', 'password'],
+      properties: {
+        email: { type: 'string', format: 'email' },
+        password: { type: 'string' },
+      },
+    },
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Autenticação bem-sucedida',
+    schema: {
+      type: 'object',
+      properties: { access_token: { type: 'string' } },
+    },
+  })
+  @ApiResponse({ status: 400, description: 'Requisição inválida' })
+  @ApiResponse({ status: 401, description: 'Credenciais inválidas' })
   async handle(@Body() body: AuthenticateBodySchema, @Req() request: Request) {
     const { email, password } = body
 
