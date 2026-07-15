@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common'
 import { ConfigModule } from '@nestjs/config'
-import { APP_GUARD } from '@nestjs/core'
+import { APP_FILTER, APP_GUARD } from '@nestjs/core'
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler'
 import { envSchema } from './env/env'
 import { AuthModule } from './auth/auth.module'
@@ -8,6 +8,7 @@ import { HttpModule } from './http/http.module'
 import { EnvModule } from './env/env.module'
 import { ObservabilityModule } from './observability/observability.module'
 import { LoggerModule } from './logger/logger.module'
+import { GlobalExceptionFilter } from './http/filters/global-exception.filter'
 
 @Module({
   imports: [
@@ -33,6 +34,10 @@ import { LoggerModule } from './logger/logger.module'
     {
       provide: APP_GUARD,
       useClass: ThrottlerGuard,
+    },
+    {
+      provide: APP_FILTER,
+      useClass: GlobalExceptionFilter,
     },
   ],
 })
