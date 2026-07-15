@@ -12,6 +12,14 @@ export const envSchema = z.object({
   OTEL_SERVICE_NAME: z.string().optional().default('bil-backend'),
   OTEL_EXPORTER_OTLP_ENDPOINT: z.string().url().optional(),
   CORS_ORIGIN: z.string().optional(),
+  NODE_ENV: z
+    .enum(['development', 'test', 'production'])
+    .optional()
+    .default('development'),
+  LOG_LEVEL: z
+    .enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace'])
+    .optional()
+    .default('info'),
 })
 
 export type Env = z.infer<typeof envSchema>

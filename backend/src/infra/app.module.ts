@@ -7,6 +7,7 @@ import { AuthModule } from './auth/auth.module'
 import { HttpModule } from './http/http.module'
 import { EnvModule } from './env/env.module'
 import { ObservabilityModule } from './observability/observability.module'
+import { LoggerModule } from './logger/logger.module'
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { ObservabilityModule } from './observability/observability.module'
         },
       ],
     }),
+    LoggerModule,
     AuthModule,
     HttpModule,
     EnvModule,
